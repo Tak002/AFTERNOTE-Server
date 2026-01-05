@@ -1,0 +1,20 @@
+package com.example.afternote.domain.mindrecord.emotion.repository;
+
+import com.example.afternote.domain.mindrecord.emotion.model.Emotion;
+import com.example.afternote.domain.mindrecord.emotion.model.SourceType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface EmotionRepository extends JpaRepository<Emotion, Long> {
+    
+    List<Emotion> findByUserId(Long userId);
+    
+    Optional<Emotion> findByUserIdAndSourceTypeAndSourceId(Long userId, SourceType sourceType, Long sourceId);
+    
+    List<Emotion> findByUserIdAndSourceType(Long userId, SourceType sourceType);
+    
+}
