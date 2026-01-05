@@ -1,4 +1,4 @@
-package com.example.afternote.domain.received.service;
+package com.example.afternote.domain.receiver.service;
 
 import org.springframework.stereotype.Service;
 
