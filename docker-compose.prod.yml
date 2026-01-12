@@ -1,11 +1,11 @@
 services:
   # =========================================
-  # 1. MySQL (로컬 DB)
+  # 1. MySQL (운영 DB)
   # =========================================
   afternote-db:
     image: mysql:8.0
     container_name: afternote-db
-    platform: linux/amd64 # 맥북 호환성
+    platform: linux/amd64
     restart: always
     environment:
       MYSQL_DATABASE: afternote
@@ -16,8 +16,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./db_data:/var/lib/mysql # 데이터 저장소
-    command: # 한글 깨짐 방지 설정
+      - ./db_data:/var/lib/mysql
+    command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     healthcheck:
@@ -36,34 +36,40 @@ services:
       - "6379:6379"
 
   # =========================================
-  # 3. Spring Boot (내 서버)
+  # 3. Spring Boot (서버)
   # =========================================
   afternote-server:
-    build: . # 현재 폴더의 Dockerfile을 보고 직접 빌드해라!
+    image: ${DOCKER_USERNAME}/afternote-server:latest
     container_name: afternote-server
     depends_on:
       afternote-db:
-        condition: service_healthy # ⭐ [추가 2] DB가 '건강함' 상태가 될 때까지 대기
+        condition: service_healthy
       afternote-redis:
         condition: service_started
     environment:
-      # ⭐ 여기서 'dev'로 설정해야 테이블이 자동 생성됩니다!
-      SPRING_PROFILES_ACTIVE: dev
-
-      # 도커 내부 통신용 주소 (localhost 대신 서비스명 사용)
+      SPRING_PROFILES_ACTIVE: prod
     env_file:
       - .env
 
+  # =========================================
+  # 4. Nginx (리버스 프록시 - HTTPS)
+  # =========================================
   afternote-nginx:
     image: nginx:alpine
     container_name: afternote-nginx
     ports:
-      - "80:80" # 외부(80) -> Nginx(80) -> Spring(8080)
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf # 로컬 개발용 설정
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf # 프로덕션용 설정
+      - ./data/certbot/conf:/etc/letsencrypt # SSL 인증서
+      - ./data/certbot/www:/var/www/certbot # 인증서 갱신
     depends_on:
-      - afternote-server # 서버가 켜져야 Nginx도 의미가 있음
+      - afternote-server
 
+  # =========================================
+  # 5. Certbot (SSL 인증서 자동 갱신)
+  # =========================================
   afternote-certbot:
     image: certbot/certbot
     container_name: afternote-certbot
