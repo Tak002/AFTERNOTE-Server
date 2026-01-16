@@ -11,6 +11,7 @@ public enum ErrorCode {
     // ======================================
     // 1. 공통 / 인증 / 인가 (code: 999)
     // ======================================
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, 999, "인증되지 않은 요청입니다."),
     LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, 999, "인증이 필요합니다. 로그인해주세요."),
     NOT_ENOUGH_PERMISSION(HttpStatus.FORBIDDEN, 999, "권한이 부족합니다."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, 999, "존재하지 않는 엔드포인트입니다."),
