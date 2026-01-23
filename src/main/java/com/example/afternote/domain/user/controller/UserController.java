@@ -9,6 +9,7 @@ import com.example.afternote.global.common.ApiResponse;
 import com.example.afternote.global.resolver.UserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +41,7 @@ public class UserController {
     @PatchMapping("/me")
     public ApiResponse<UserResponse> updateMyProfile(
             @UserId Long userId,
-            @RequestBody(required = false) UserUpdateProfileRequest request
+            @Valid @RequestBody(required = false) UserUpdateProfileRequest request
     ) {
         return ApiResponse.success(
                 userService.updateMyProfile(userId, request)
@@ -67,7 +68,7 @@ public class UserController {
     @PatchMapping("/push-settings")
     public ApiResponse<UserPushSettingResponse> updateMyPushSettings(
             @UserId Long userId,
-            @RequestBody UserUpdatePushSettingRequest request
+            @Valid @RequestBody UserUpdatePushSettingRequest request
     ) {
         return ApiResponse.success(
                 userService.updateMyPushSettings(userId, request)
