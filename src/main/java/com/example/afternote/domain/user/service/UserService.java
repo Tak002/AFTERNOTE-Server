@@ -24,16 +24,14 @@ public class UserService {
 
     public UserResponse getMyProfile(Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
         return UserResponse.from(user);
     }
 
     @Transactional
     public UserResponse updateMyProfile(Long userId, UserUpdateProfileRequest request) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         user.updateProfile(
                 request.getName(),
@@ -46,8 +44,7 @@ public class UserService {
 
 
     public UserPushSettingResponse getMyPushSettings(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         return UserPushSettingResponse.from(user);
     }
@@ -55,8 +52,7 @@ public class UserService {
     @Transactional
     public UserPushSettingResponse updateMyPushSettings(Long userId, UserUpdatePushSettingRequest request
     ) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         user.updatePushSettings(
                 request.getTimeLetter(),
@@ -70,8 +66,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<ReceiverListResponse> getReceivers(Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         return userReceiverRepository.findAllByUser(user).stream()
                 .map(ur -> ReceiverListResponse.from(ur.getReceiver()))
@@ -81,8 +76,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public ReceiverDetailResponse getReceiverDetail(Long userId, Long receiverId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = findUserById(userId);
 
         UserReceiver userReceiver =
                 userReceiverRepository.findByUserAndReceiverId(user, receiverId)
@@ -103,5 +97,8 @@ public class UserService {
         );
     }
 
-
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
 }
