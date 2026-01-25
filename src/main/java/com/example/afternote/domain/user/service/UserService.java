@@ -5,6 +5,8 @@ import com.example.afternote.domain.receiver.repository.ReceivedRepository;
 import com.example.afternote.domain.user.dto.*;
 import com.example.afternote.domain.user.model.User;
 import com.example.afternote.domain.user.repository.UserRepository;
+import com.example.afternote.domain.userreceiver.model.UserReceiver;
+import com.example.afternote.domain.userreceiver.repository.UserReceiverRepository;
 import com.example.afternote.global.exception.CustomException;
 import com.example.afternote.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
-    private final ReceivedRepository receiverRepository;
+    private final UserReceiverRepository userReceiverRepository;
 
     public UserResponse getMyProfile(Long userId) {
 
@@ -66,13 +68,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReceiverDetailResponse> getReceivers(Long userId) {
+    public List<ReceiverListResponse> getReceivers(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        return receiverRepository.findAllByUser(user).stream()
-                .map(ReceiverDetailResponse::from)
+        return userReceiverRepository.findAllByUser(user).stream()
+                .map(ur -> ReceiverListResponse.from(ur.getReceiver()))
                 .toList();
     }
 
@@ -82,10 +84,23 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Receiver receiver = receiverRepository.findByIdAndUser(receiverId, user)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        UserReceiver userReceiver =
+                userReceiverRepository.findByUserAndReceiverId(user, receiverId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        return ReceiverDetailResponse.from(receiver);
+        Receiver receiver = userReceiver.getReceiver();
+
+        // TODO: DailyQuestion, TimeLetter, AfterNote 도메인 생성 후 count 로직 추가
+        int dailyCount = 0;
+        int timeLetterCount = 0;
+        int afterNoteCount = 0;
+
+        return ReceiverDetailResponse.from(
+                receiver,
+                dailyCount,
+                timeLetterCount,
+                afterNoteCount
+        );
     }
 
 
