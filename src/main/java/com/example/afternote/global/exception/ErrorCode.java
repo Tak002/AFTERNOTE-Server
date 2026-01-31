@@ -87,8 +87,17 @@ public enum ErrorCode {
     // ======================================
     // 5. 요청 값 검증 오류 (code: 430 ~)
     // ======================================
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, 430, "요청 값이 올바르지 않습니다.");
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, 430, "요청 값이 올바르지 않습니다."),
 
+    // ======================================
+    // 6. 마음의 기록(MindRecord) 관련 오류 (code: 440 ~)
+    // ======================================
+
+    // 마음의 기록을 찾을 수 없음
+    MIND_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, 440, "마음의 기록을 찾을 수 없습니다."),
+
+    // 본인의 마음의 기록이 아님
+    MIND_RECORD_FORBIDDEN(HttpStatus.FORBIDDEN, 441, "해당 마음의 기록에 대한 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final int code;

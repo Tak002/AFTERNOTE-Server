@@ -1,6 +1,10 @@
 package com.example.afternote.domain.mindrecord.dto;
 
+import com.example.afternote.domain.mindrecord.diary.model.Diary;
+import com.example.afternote.domain.mindrecord.model.MindRecord;
 import com.example.afternote.domain.mindrecord.model.MindRecordType;
+import com.example.afternote.domain.mindrecord.question.model.DailyQuestionAnswer;
+import com.example.afternote.domain.mindrecord.thought.model.DeepThought;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +38,33 @@ public class GetMindRecordDetailResponse {
 
     @Schema(description = "깊은 생각 카테고리 (DEEP_THOUGHT 타입일 때)", nullable = true, example = "자아성찰")
     private String category;
+
+    public static GetMindRecordDetailResponse from(MindRecord record, Diary diary) {
+        return base(record)
+                .content(diary.getContent())
+                .build();
+    }
+
+    public static GetMindRecordDetailResponse from(MindRecord record, DailyQuestionAnswer answer) {
+        return base(record)
+                .content(answer.getContent())
+                .questionId(answer.getDailyQuestion().getId())
+                .build();
+    }
+
+    public static GetMindRecordDetailResponse from(MindRecord record, DeepThought thought) {
+        return base(record)
+                .content(thought.getContent())
+                .category(thought.getCategory())
+                .build();
+    }
+
+    private static GetMindRecordDetailResponseBuilder base(MindRecord record) {
+        return GetMindRecordDetailResponse.builder()
+                .recordId(record.getId())
+                .type(record.getType())
+                .title(record.getTitle())
+                .date(record.getRecordDate().toString())
+                .isDraft(record.getIsDraft());
+    }
 }

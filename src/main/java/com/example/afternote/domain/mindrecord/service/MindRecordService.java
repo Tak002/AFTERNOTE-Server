@@ -1,12 +1,15 @@
 package com.example.afternote.domain.mindrecord.service;
 
-import com.example.afternote.domain.mindrecord.dto.GetMindRecordListRequest;
-import com.example.afternote.domain.mindrecord.dto.GetMindRecordListResponse;
-import com.example.afternote.domain.mindrecord.dto.MindRecordListItemDto;
-import com.example.afternote.domain.mindrecord.dto.PostMindRecordRequest;
+import com.example.afternote.domain.mindrecord.diary.model.Diary;
+import com.example.afternote.domain.mindrecord.diary.repository.DiaryRepository;
+import com.example.afternote.domain.mindrecord.dto.*;
 import com.example.afternote.domain.mindrecord.model.MindRecord;
 import com.example.afternote.domain.mindrecord.model.MindRecordType;
+import com.example.afternote.domain.mindrecord.question.model.DailyQuestionAnswer;
+import com.example.afternote.domain.mindrecord.question.repository.DailyQuestionAnswerRepository;
 import com.example.afternote.domain.mindrecord.repository.MindRecordRepository;
+import com.example.afternote.domain.mindrecord.thought.model.DeepThought;
+import com.example.afternote.domain.mindrecord.thought.repository.DeepThoughtRepository;
 import com.example.afternote.domain.user.model.User;
 import com.example.afternote.domain.user.repository.UserRepository;
 import com.example.afternote.global.exception.CustomException;
@@ -26,6 +29,9 @@ public class MindRecordService {
 
     private final MindRecordRepository mindRecordRepository;
     private final UserRepository userRepository;
+    private final DiaryRepository diaryRepository;
+    private final DailyQuestionAnswerRepository dailyQuestionAnswerRepository;
+    private final DeepThoughtRepository deepThoughtRepository;
 
     /**
      * 마음의 기록 목록 조회 (LIST / CALENDAR 공통)
@@ -101,7 +107,6 @@ public class MindRecordService {
     /**
      * 마음의 기록 생성 (POST)
      */
-
     @Transactional
     public Long createMindRecord(
             Long userId,
@@ -112,17 +117,6 @@ public class MindRecordService {
 
         validateCommonFields(request);  // 공통 필드 검증
 
-        MindRecord record = switch (request.getType()) {
-            case DIARY -> createDiary(user, request);
-            case DAILY_QUESTION -> createDailyQuestion(user, request);
-            case DEEP_THOUGHT -> createDeepThought(user, request);
-        };
-
-        mindRecordRepository.save(record);
-        return record.getId();
-    }
-
-    private MindRecord createBaseRecord(User user, MindRecordType type, PostMindRecordRequest request ){
         LocalDate recordDate;
         try {
             recordDate = LocalDate.parse(request.getDate());
@@ -130,30 +124,32 @@ public class MindRecordService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        return MindRecord.create(
-                user, type, request.getTitle(), recordDate, request.getIsDraft()
-        );
-    }
+        MindRecord record = switch (request.getType()) {
+            case DIARY -> MindRecord.diary(
+                    user, request.getTitle(), recordDate, request.getIsDraft()
+            );
 
+            case DAILY_QUESTION -> {
+                if (request.getQuestionId() == null) {
+                    throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+                }
+                yield MindRecord.dailyQuestion(
+                        user, request.getTitle(), recordDate, request.getIsDraft()
+                );
+            }
 
-    private MindRecord createDiary(User user, PostMindRecordRequest request) {
-        return createBaseRecord(user, MindRecordType.DIARY, request);
-    }
+            case DEEP_THOUGHT -> {
+                if (request.getCategory() == null || request.getCategory().isBlank()) {
+                    throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+                }
+                yield MindRecord.deepThought(
+                        user, request.getTitle(), recordDate, request.getIsDraft()
+                );
+            }
+        };
 
-    private MindRecord createDailyQuestion(User user, PostMindRecordRequest request) {
-        if (request.getQuestionId() == null) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        return createBaseRecord(user, MindRecordType.DAILY_QUESTION, request);
-    }
-
-    private MindRecord createDeepThought(User user, PostMindRecordRequest request) {
-        if (request.getCategory() == null || request.getCategory().isBlank()) {
-            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        return createBaseRecord(user, MindRecordType.DEEP_THOUGHT, request);
+        mindRecordRepository.save(record);
+        return record.getId();
     }
 
     private void validateCommonFields(PostMindRecordRequest request) {
@@ -162,6 +158,40 @@ public class MindRecordService {
                 request.getIsDraft() == null) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
+    }
+
+    /**
+     * 마음의 기록 단건 수정 화면 조회
+     */
+    /* ================= 단건 조회 ================= */
+
+    public GetMindRecordDetailResponse getMindRecordDetail(Long userId, Long recordId) {
+        MindRecord record = mindRecordRepository.findById(recordId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
+
+        if (!record.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.MIND_RECORD_FORBIDDEN);
+        }
+
+        return switch (record.getType()) {
+            case DIARY -> {
+                Diary diary = diaryRepository.findByMindRecord(record)
+                        .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
+                yield GetMindRecordDetailResponse.from(record, diary);
+            }
+
+            case DAILY_QUESTION -> {
+                DailyQuestionAnswer answer = dailyQuestionAnswerRepository.findByMindRecord(record)
+                        .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
+                yield GetMindRecordDetailResponse.from(record, answer);
+            }
+
+            case DEEP_THOUGHT -> {
+                DeepThought thought = deepThoughtRepository.findByMindRecord(record)
+                        .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
+                yield GetMindRecordDetailResponse.from(record, thought);
+            }
+        };
     }
 
 }
