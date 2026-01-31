@@ -34,7 +34,6 @@ public class MindRecordService {
     private final DiaryRepository diaryRepository;
     private final DailyQuestionAnswerRepository dailyQuestionAnswerRepository;
     private final DeepThoughtRepository deepThoughtRepository;
-    private final DailyQuestionRepository dailyQuestionRepository;
 
     private final DiaryService diaryService;
     private final DailyQuestionService dailyQuestionService;
@@ -115,14 +114,12 @@ public class MindRecordService {
      * 마음의 기록 생성 (POST)
      */
     @Transactional
-    public Long createMindRecord(
-            Long userId,
-            PostMindRecordRequest request
-    ) {
+    public Long createMindRecord(Long userId, PostMindRecordRequest request) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        validateCommonFields(request);  // 공통 필드 검증
+        validateCommonFields(request);
 
         LocalDate recordDate;
         try {
@@ -131,33 +128,18 @@ public class MindRecordService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        MindRecord record = switch (request.getType()) {
-            case DIARY -> MindRecord.diary(user, request.getTitle(), recordDate, request.getIsDraft());
-            case DAILY_QUESTION -> MindRecord.dailyQuestion(user, request.getTitle(), recordDate, request.getIsDraft());
-            case DEEP_THOUGHT -> MindRecord.deepThought(user, request.getTitle(), recordDate, request.getIsDraft());
-        };
+        MindRecord record = MindRecord.create(
+                user, request.getType(), request.getTitle(), recordDate, request.getIsDraft()
+        );
 
         mindRecordRepository.save(record);
 
-        switch (request.getType()) {
-            case DIARY -> {
-                Diary diary = Diary.create(record, request.getContent());
-                diaryRepository.save(diary);
-            }
-            case DAILY_QUESTION -> {
-                DailyQuestion question = dailyQuestionRepository.findById(request.getQuestionId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.DAILY_QUESTION_NOT_FOUND));
-
-                DailyQuestionAnswer answer =
-                        DailyQuestionAnswer.create(record, question, request.getContent());
-                dailyQuestionAnswerRepository.save(answer);
-            }
-            case DEEP_THOUGHT -> {
-                DeepThought thought =
-                        DeepThought.create(record, request.getCategory(), request.getContent());
-                deepThoughtRepository.save(thought);
-            }
+        switch (record.getType()) {
+            case DIARY -> diaryService.create(record, request);
+            case DAILY_QUESTION -> dailyQuestionService.create(record, request);
+            case DEEP_THOUGHT -> deepThoughtService.create(record, request);
         }
+
         return record.getId();
     }
 
