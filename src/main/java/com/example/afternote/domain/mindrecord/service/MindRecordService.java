@@ -36,6 +36,10 @@ public class MindRecordService {
     private final DeepThoughtRepository deepThoughtRepository;
     private final DailyQuestionRepository dailyQuestionRepository;
 
+    private final DiaryService diaryService;
+    private final DailyQuestionService dailyQuestionService;
+    private final DeepThoughtService deepThoughtService;
+
     /**
      * 마음의 기록 목록 조회 (LIST / CALENDAR 공통)
      */
@@ -169,14 +173,8 @@ public class MindRecordService {
      * 마음의 기록 단건 수정 화면 조회
      */
     /* ================= 단건 조회 ================= */
-
     public GetMindRecordDetailResponse getMindRecordDetail(Long userId, Long recordId) {
-        MindRecord record = mindRecordRepository.findById(recordId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
-
-        if (!record.getUser().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.MIND_RECORD_FORBIDDEN);
-        }
+        MindRecord record = findRecord(recordId, userId);
 
         return switch (record.getType()) {
             case DIARY -> {
@@ -199,4 +197,43 @@ public class MindRecordService {
         };
     }
 
+
+    /**
+     * 마음의 기록 수정 (PATCH)
+     */
+    @Transactional
+    public Long updateMindRecord(Long userId, Long recordId, PatchMindRecordRequest request) {
+
+        MindRecord record = findRecord(recordId, userId);
+        LocalDate recordDate;
+        try {
+            recordDate = LocalDate.parse(request.getDate());
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        record.updateCommon(
+                request.getTitle(),
+                recordDate,
+                request.getIsDraft()
+        );
+
+        switch (record.getType()) {
+            case DIARY -> diaryService.update(record, request);
+            case DAILY_QUESTION -> dailyQuestionService.update(record, request);
+            case DEEP_THOUGHT -> deepThoughtService.update(record, request);
+        }
+
+        return record.getId();
+    }
+
+    private MindRecord findRecord(Long recordId, Long userId) {
+        MindRecord record = mindRecordRepository.findById(recordId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
+
+        if (!record.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.MIND_RECORD_FORBIDDEN);
+        }
+
+        return record;
+    }
 }
