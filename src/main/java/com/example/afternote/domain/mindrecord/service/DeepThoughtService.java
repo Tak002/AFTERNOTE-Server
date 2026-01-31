@@ -1,6 +1,7 @@
 package com.example.afternote.domain.mindrecord.service;
 
 import com.example.afternote.domain.mindrecord.dto.PatchMindRecordRequest;
+import com.example.afternote.domain.mindrecord.dto.PostMindRecordRequest;
 import com.example.afternote.domain.mindrecord.model.MindRecord;
 import com.example.afternote.domain.mindrecord.thought.model.DeepThought;
 import com.example.afternote.domain.mindrecord.thought.repository.DeepThoughtRepository;
@@ -16,6 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeepThoughtService {
 
     private final DeepThoughtRepository deepThoughtRepository;
+
+    public void create(MindRecord record, PostMindRecordRequest request) {
+        DeepThought thought =
+                DeepThought.create(record, request.getCategory(), request.getContent());
+        deepThoughtRepository.save(thought);
+    }
 
     public void update(MindRecord record, PatchMindRecordRequest request) {
         DeepThought thought = deepThoughtRepository.findByMindRecord(record)
