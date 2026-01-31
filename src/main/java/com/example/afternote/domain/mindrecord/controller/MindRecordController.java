@@ -1,13 +1,11 @@
 package com.example.afternote.domain.mindrecord.controller;
 
-import com.example.afternote.domain.mindrecord.dto.GetMindRecordListRequest;
-import com.example.afternote.domain.mindrecord.dto.GetMindRecordListResponse;
-import com.example.afternote.domain.mindrecord.dto.PostMindRecordRequest;
-import com.example.afternote.domain.mindrecord.dto.PostMindRecordResponse;
+import com.example.afternote.domain.mindrecord.dto.*;
 import com.example.afternote.domain.mindrecord.service.MindRecordService;
 import com.example.afternote.global.common.ApiResponse;
 import com.example.afternote.global.resolver.UserId;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +44,22 @@ public class MindRecordController {
     ) {
         Long recordId = mindRecordService.createMindRecord(userId, request);
         return ApiResponse.success(new PostMindRecordResponse(recordId));
+    }
+
+    /**
+     * 마음의 기록 단건 수정 화면 조회
+     */
+    @Operation(
+            summary = "마음의 기록 단건 조회 (수정 화면) API",
+            description = "기록 수정 화면 진입 시 사용하는 단건 조회 API"
+    )
+    @GetMapping("/{recordId}")
+    public ApiResponse<GetMindRecordDetailResponse> getMindRecordDetail(
+            @Parameter(hidden = true) @UserId Long userId,
+            @PathVariable Long recordId
+    ) {
+        return ApiResponse.success(
+                mindRecordService.getMindRecordDetail(userId, recordId)
+        );
     }
 }
