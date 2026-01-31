@@ -100,7 +100,13 @@ public enum ErrorCode {
     MIND_RECORD_FORBIDDEN(HttpStatus.FORBIDDEN, 441, "해당 마음의 기록에 대한 권한이 없습니다."),
 
     // 데일리 질문을 찾을 수 없음
-    DAILY_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND,442 ,"데일리 질문을 찾을 수 없습니다." );
+    DAILY_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND,442 ,"데일리 질문을 찾을 수 없습니다." ),
+
+    // 깊은생각 기록 수정/생성 시 카테고리 누락
+    DEEP_THOUGHT_CATEGORY_REQUIRED(HttpStatus.BAD_REQUEST, 443, "깊은 생각 카테고리는 필수입니다."),
+
+    // 마음의 기록 수정/생성 시 본문 내용 누락
+    MIND_RECORD_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, 444, "마음의 기록 내용은 필수입니다.");
 
     private final HttpStatus httpStatus;
     private final int code;
