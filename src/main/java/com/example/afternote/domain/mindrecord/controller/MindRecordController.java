@@ -26,7 +26,7 @@ public class MindRecordController {
     )
     @GetMapping
     public ApiResponse<GetMindRecordListResponse> getMindRecordList(
-            @UserId Long userId,
+            @Parameter(hidden = true) @UserId Long userId,
             GetMindRecordListRequest request
     ) {
         return ApiResponse.success(
@@ -40,7 +40,7 @@ public class MindRecordController {
     )
     @PostMapping
     public ApiResponse<PostMindRecordResponse> createMindRecord(
-            @UserId Long userId,
+            @Parameter(hidden = true) @UserId Long userId,
             @Valid @RequestBody PostMindRecordRequest request
     ) {
         Long recordId = mindRecordService.createMindRecord(userId, request);
