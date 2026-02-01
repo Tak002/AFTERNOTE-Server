@@ -98,7 +98,9 @@ public class AfternoteService {
     public AfternoteCreateResponse updateAfternote(Long userId, Long afternoteId, AfternoteCreateRequest request) {
         Afternote afternote = afternoteRepository.findById(afternoteId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND));
-        
+        if(!afternote.getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AFTERNOTE_ACCESS_DENIED);
+        }
         // PATCH용 검증 (카테고리 변경 불가 체크)
         validator.validateUpdateRequest(request, afternote.getCategoryType());
 
@@ -137,7 +139,9 @@ public class AfternoteService {
     public void deleteAfternote(Long userId, Long afternoteId) {
         Afternote afternote = afternoteRepository.findById(afternoteId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND));
-        
+        if(!afternote.getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AFTERNOTE_ACCESS_DENIED);
+        }
         afternoteRepository.delete(afternote);
     }
 }

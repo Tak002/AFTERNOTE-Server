@@ -145,7 +145,7 @@ public class AfternoteValidator {
         if (request.getCredentials() != null) {
             throw new CustomException(ErrorCode.INVALID_FIELD_FOR_PLAYLIST);
         }
-        if (request.getReceivers() != null) {
+        if (request.getReceivers() != null && !request.getReceivers().isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_FIELD_FOR_PLAYLIST);
         }
         if (request.getProcessMethod() != null) {
