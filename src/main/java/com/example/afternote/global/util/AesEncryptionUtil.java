@@ -2,6 +2,7 @@ package com.example.afternote.global.util;
 
 import com.example.afternote.global.exception.CustomException;
 import com.example.afternote.global.exception.ErrorCode;
+import jakarta.annotation.PostConstruct;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ public class AesEncryptionUtil {
 
     private static final String ALGORITHM = "ChaCha20-Poly1305";
     private static final int NONCE_LENGTH = 12; // ChaCha20-Poly1305는 96-bit nonce 사용
+    private static final int KEY_SIZE = 32; // ChaCha20 requires 256-bit (32-byte) key
 
     static {
         // Bouncy Castle Provider 등록
@@ -32,6 +34,14 @@ public class AesEncryptionUtil {
 
     @Value("${security.chacha20.secret-key}")
     private String secretKey;
+
+    @PostConstruct
+    private void validateKey() {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length != KEY_SIZE) {
+           throw new CustomException(ErrorCode.ENCRYPTION_FAILED);
+        }
+    }
 
     /**
      * 암호화
@@ -71,6 +81,7 @@ public class AesEncryptionUtil {
      * 복호화
      */
     public String decrypt(String encryptedText) {
+
         try {
             byte[] combined = Base64.getDecoder().decode(encryptedText);
             
