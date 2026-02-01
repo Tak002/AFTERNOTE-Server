@@ -42,7 +42,7 @@ jwt:
 # 모바일 환경에 최적화된 암호화 (ARM 프로세서에서 AES보다 빠름)
 security:
   chacha20:
-    secret-key: ${CHACHA20_SECRET_KEY:12345678901234567890123456789012} # 32 bytes for ChaCha20
+    secret-key: ${CHACHA20_SECRET_KEY} # 32 bytes for ChaCha20
 
 # CORS 설정 (환경별로 다르게 설정)
 cors:
