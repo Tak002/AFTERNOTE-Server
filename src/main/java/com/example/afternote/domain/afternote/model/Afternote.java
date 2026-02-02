@@ -46,11 +46,11 @@ public class Afternote {
     private Integer sortOrder;
     
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME")
     private LocalDateTime createdAt;
     
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "afternote", cascade = CascadeType.ALL, orphanRemoval = true)
