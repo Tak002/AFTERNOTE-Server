@@ -78,11 +78,6 @@ public class Afternote {
             this.actions.addAll(actions);
         }
     }
-    
-    public void clearRelations() {
-        this.secureContents.clear();
-        this.receivers.clear();
-        this.playlists.clear();
-    }
+
 
 }
