@@ -45,7 +45,7 @@ public class AfternoteController {
 
     @Operation(
             summary = "애프터노트 상세 목록 조회 API",
-            description = "애프터노트 상세목록을 가져옵니다. param으로 afternote_id를 보내주시면 됩니다."
+            description = "애프터노트 상세목록을 가져옵니다. path variable로 afternote_id를 보내주시면 됩니다."
     )
     @GetMapping("/{afternoteId}")
     public ApiResponse<AfternotedetailResponse> getDetailAfternote(
