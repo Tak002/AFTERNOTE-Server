@@ -6,7 +6,7 @@ import com.example.afternote.domain.mindrecord.model.MindRecord;
 import com.example.afternote.domain.mindrecord.question.model.DailyQuestion;
 import com.example.afternote.domain.mindrecord.question.model.DailyQuestionAnswer;
 import com.example.afternote.domain.mindrecord.question.repository.DailyQuestionAnswerRepository;
-import com.example.afternote.domain.mindrecord.question.repository.DailyQuestionRepository;
+import com.example.afternote.domain.mindrecord.repository.DailyQuestionRepository;
 import com.example.afternote.global.exception.CustomException;
 import com.example.afternote.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
