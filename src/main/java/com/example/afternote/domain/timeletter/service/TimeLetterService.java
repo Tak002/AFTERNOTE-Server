@@ -1,5 +1,6 @@
 package com.example.afternote.domain.timeletter.service;
 
+import com.example.afternote.domain.receiver.service.ReceivedService;
 import com.example.afternote.domain.timeletter.dto.*;
 import com.example.afternote.domain.timeletter.model.TimeLetter;
 import com.example.afternote.domain.timeletter.model.TimeLetterMedia;
@@ -26,6 +27,7 @@ public class TimeLetterService {
     private final TimeLetterRepository timeLetterRepository;
     private final TimeLetterMediaRepository timeLetterMediaRepository;
     private final UserRepository userRepository;
+    private final ReceivedService receivedService;
 
     /**
      * 정식 등록된 타임레터 전체 조회 (SCHEDULED 상태만)
@@ -79,6 +81,12 @@ public class TimeLetterService {
 
         // 미디어 저장
         List<TimeLetterMedia> savedMediaList = saveMediaList(savedTimeLetter, request.getMediaList());
+
+        // 수신자 등록 (receiverIds가 존재하는 경우에만)
+        if (request.getReceiverIds() != null && !request.getReceiverIds().isEmpty()) {
+            receivedService.createTimeLetterReceivers(
+                    savedTimeLetter, userId, request.getReceiverIds(), request.getDeliveredAt());
+        }
 
         return TimeLetterResponse.from(savedTimeLetter, savedMediaList);
     }
