@@ -4,7 +4,7 @@ import com.example.afternote.domain.afternote.model.AfternoteReceiver;
 import com.example.afternote.domain.mindrecord.model.MindRecord;
 import com.example.afternote.domain.mindrecord.repository.MindRecordRepository;
 import com.example.afternote.domain.receiver.dto.*;
-import com.example.afternote.domain.receiver.model.MindRecordReceiver;
+import com.example.afternote.domain.mindrecord.model.MindRecordReceiver;
 import com.example.afternote.domain.receiver.model.Receiver;
 import com.example.afternote.domain.receiver.model.TimeLetterReceiver;
 import com.example.afternote.domain.receiver.repository.AfternoteReceiverRepository;
@@ -214,7 +214,7 @@ public class ReceivedService {
     @Transactional
     public List<Long> createMindRecordReceivers(Long userId, CreateMindRecordReceiverRequest request) {
         MindRecord mindRecord = mindRecordRepository.findById(request.getMindRecordId())
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_INPUT_VALUE));
+                .orElseThrow(() -> new CustomException(ErrorCode.MIND_RECORD_NOT_FOUND));
 
         // 본인의 마인드레코드인지 확인
         if (!mindRecord.getUser().getId().equals(userId)) {
