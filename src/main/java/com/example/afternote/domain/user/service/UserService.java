@@ -51,7 +51,7 @@ public class UserService {
                 request.getProfileImageUrl()
         );
 
-        return UserResponse.from(user);
+        return UserResponse.from(user, s3Service::generateGetPresignedUrl);
     }
 
 
