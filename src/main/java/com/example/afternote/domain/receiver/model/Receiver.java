@@ -67,4 +67,12 @@ public class Receiver {
 
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AfternoteReceiver> afternoteReceivers = new ArrayList<>();
+
+    public void updateInfo(String name, String relation, String phone, String email) {
+        this.name = name;
+        this.relation = relation;
+        this.phone = phone;
+        this.email = email;
+    }
+
 }

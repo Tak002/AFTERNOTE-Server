@@ -62,6 +62,19 @@ public class UserController {
     }
 
     @Operation(
+            summary = "연결된 계정 조회 API",
+            description = "로그인한 사용자의 연결된 소셜/로컬 계정 정보를 조회합니다."
+    )
+    @GetMapping("/connected-accounts")
+    public ApiResponse<UserConnectedAccountResponse> getConnectedAccounts(
+            @Parameter(hidden = true) @UserId Long userId
+    ) {
+        return ApiResponse.success(
+                userService.getConnectedAccounts(userId)
+        );
+    }
+
+    @Operation(
             summary = "푸시 알림 설정 수정 API",
             description = "로그인한 사용자의 푸시 알림 수신 설정을 수정합니다."
     )
@@ -152,4 +165,33 @@ public class UserController {
     ) {
         return ApiResponse.success(userService.updateDeliveryCondition(userId, request));
     }
+
+    @Operation(
+            summary = "회원 탈퇴 API",
+            description = "로그인한 사용자의 계정을 삭제합니다. 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다."
+    )
+    @DeleteMapping("/me")
+    public ApiResponse<Void> deleteAccount(
+            @Parameter(hidden = true) @UserId Long userId
+    ) {
+        userService.deleteAccount(userId);
+        return ApiResponse.success(null);
+    }
+
+    @Operation(
+            summary = "수신인 정보 수정 API",
+            description = "특정 수신인의 이름, 관계, 전화번호, 이메일 정보를 수정합니다."
+    )
+    @PatchMapping("/receivers/{receiverId}")
+    public ApiResponse<UserPatchReceiverResponse> updateReceiver(
+            @Parameter(hidden = true) @UserId Long userId,
+            @PathVariable Long receiverId,
+            @Valid @RequestBody UserPatchReceiverRequest request
+    ) {
+        return ApiResponse.success(
+                userService.updateReceiver(userId, receiverId, request)
+        );
+    }
+
+
 }

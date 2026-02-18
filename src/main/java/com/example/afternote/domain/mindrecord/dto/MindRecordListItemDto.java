@@ -23,6 +23,9 @@ public class MindRecordListItemDto {
     @Schema(description = "기록 날짜", example = "2026-01-11")
     private String date;
 
+    @Schema(description = "기록 내용", example = "오늘은 날씨가 정말 좋았다.")
+    private String content;
+
     @Schema(description = "임시저장 여부", example = "false")
     private Boolean isDraft;
 
@@ -32,6 +35,7 @@ public class MindRecordListItemDto {
                 .type(record.getType().name())
                 .title(record.getTitle())
                 .date(record.getRecordDate().toString())
+                .content(record.getContent())
                 .isDraft(record.getIsDraft())
                 .build();
     }

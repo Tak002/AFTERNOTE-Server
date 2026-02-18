@@ -12,6 +12,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users") // DB 예약어 방지를 위해 테이블명은 users 권장
@@ -36,16 +39,33 @@ public class User {
     @Column
     private String phone; // 연락처 (선택)
 
-    @Column
+    @Column(length = 1000)
     private String profileImageUrl; // 프로필 이미지 URL (선택)
 
     @Enumerated(EnumType.STRING) // DB에 숫자가 아닌 텍스트(ACTIVE)로 저장
     @Column(nullable = false)
     private UserStatus status;
 
-    @Enumerated(EnumType.STRING) // DB에 숫자가 아닌 텍스트(KAKAO, LOCAL)로 저장
-    @Column(nullable = false)
-    private AuthProvider provider; // ERD 하단에 추가된 provider 필드 반영
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserProvider> providers = new HashSet<>(); // 연결된 소셜 로그인 제공자 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.receiver.model.UserReceiver> userReceivers = new java.util.ArrayList<>(); // 사용자가 등록한 수신자 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.timeletter.model.TimeLetter> timeLetters = new java.util.ArrayList<>(); // 작성한 타임레터 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.mindrecord.model.MindRecord> mindRecords = new java.util.ArrayList<>(); // 작성한 마음의 기록 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.mindrecord.question.model.DailyQuestionAnswer> dailyQuestionAnswers = new java.util.ArrayList<>(); // 작성한 일일 질문 답변 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.afternote.model.Afternote> afternotes = new java.util.ArrayList<>(); // 작성한 애프터노트 목록
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.example.afternote.domain.mindrecord.question.model.UserDailyQuestion> userDailyQuestions = new java.util.ArrayList<>(); // 매일의 질문 목록
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -94,10 +114,12 @@ public class User {
         this.phone = phone;
         this.profileImageUrl = profileImageUrl;
         this.status = status;
-        this.provider = provider;
         this.role = UserRole.USER;
         this.deliveryConditionType = DeliveryConditionType.NONE;
         this.conditionFulfilled = true;
+
+        // 첫 번째 provider 등록
+        addProvider(provider, null);
 
         this.timeLetterPushEnabled = true;
         this.mindRecordPushEnabled = true;
@@ -181,5 +203,54 @@ public class User {
                     && this.updatedAt.isBefore(LocalDateTime.now().minusDays(this.inactivityPeriodDays));
             case SPECIFIC_DATE -> this.specificDate != null && !LocalDate.now().isBefore(this.specificDate);
         };
+    }
+
+
+
+    /**
+     * 새로운 provider를 사용자에게 연동
+     *
+     * @param provider 추가할 소셜 로그인 제공자
+     */
+    public void addProvider(AuthProvider provider, String providerId) {
+        if (provider == null) {
+            return;
+        }
+
+        UserProvider existing = this.providers.stream()
+                .filter(p -> p.getProvider() == provider)
+                .findFirst()
+                .orElse(null);
+
+        if (existing == null) {
+            this.providers.add(UserProvider.builder()
+                    .user(this)
+                    .provider(provider)
+                    .providerId(providerId)
+                    .build());
+        } else if (providerId != null && (existing.getProviderId() == null || existing.getProviderId().isBlank())) {
+            existing.updateProviderId(providerId);
+        }
+    }
+
+    /**
+     * 사용자가 특정 provider를 통해 로그인할 수 있는지 확인
+     *
+     * @param provider 확인할 소셜 로그인 제공자
+     * @return provider가 연동되어 있으면 true
+     */
+    public boolean hasProvider(AuthProvider provider) {
+        return this.providers.stream().anyMatch(p -> p.getProvider() == provider);
+    }
+
+    /**
+     * 사용자가 연동한 provider 목록을 반환
+     *
+     * @return provider Set (빈 Set이 아님을 보장)
+     */
+    public Set<AuthProvider> getProviders() {
+        return this.providers.stream()
+                .map(UserProvider::getProvider)
+                .collect(Collectors.toSet());
     }
 }

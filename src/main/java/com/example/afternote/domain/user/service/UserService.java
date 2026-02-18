@@ -7,6 +7,7 @@ import com.example.afternote.domain.receiver.service.DeliveryVerificationService
 import com.example.afternote.domain.receiver.repository.ReceiverRepository;
 import com.example.afternote.domain.receiver.repository.UserReceiverRepository;
 import com.example.afternote.domain.user.dto.*;
+import com.example.afternote.domain.user.model.AuthProvider;
 import com.example.afternote.domain.user.model.DeliveryConditionType;
 import com.example.afternote.domain.user.model.User;
 import com.example.afternote.domain.user.repository.UserRepository;
@@ -32,6 +33,7 @@ public class UserService {
     private final AuthCodeMessageService authCodeMessageService;
     private final S3Service s3Service;
     private final DeliveryVerificationService deliveryVerificationService;
+    private final com.example.afternote.domain.auth.service.TokenService tokenService;
 
     public UserResponse getMyProfile(Long userId) {
 
@@ -58,6 +60,18 @@ public class UserService {
         User user = findUserById(userId);
 
         return UserPushSettingResponse.from(user);
+    }
+
+    public UserConnectedAccountResponse getConnectedAccounts(Long userId) {
+        User user = findUserById(userId);
+
+        boolean local = user.hasProvider(AuthProvider.LOCAL);
+        boolean google = user.hasProvider(AuthProvider.GOOGLE);
+        boolean naver = user.hasProvider(AuthProvider.NAVER);
+        boolean kakao = user.hasProvider(AuthProvider.KAKAO);
+        boolean apple = false;
+
+        return new UserConnectedAccountResponse(local, google, naver, kakao, apple);
     }
 
     @Transactional
@@ -89,7 +103,7 @@ public class UserService {
 
         UserReceiver userReceiver =
                 userReceiverRepository.findByUserAndReceiverId(user, receiverId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                        .orElseThrow(() -> new CustomException(ErrorCode.RECEIVER_NOT_FOUND));
 
         Receiver receiver = userReceiver.getReceiver();
 
@@ -183,8 +197,41 @@ public class UserService {
         receiver.updateMessage(request.getMessage());
     }
 
+    @Transactional
+    public void deleteAccount(Long userId) {
+        User user = findUserById(userId);
+        
+        // 1. Redis에서 해당 유저의 모든 refresh token 삭제
+        tokenService.deleteAllUserTokens(userId);
+        
+        // 2. User 엔티티 삭제 (cascade로 providers도 자동 삭제됨)
+        userRepository.delete(user);
+    }
+
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
+
+    @Transactional
+    public UserPatchReceiverResponse updateReceiver(Long userId, Long receiverId, UserPatchReceiverRequest request) {
+
+        User user = findUserById(userId);
+        UserReceiver userReceiver =
+                userReceiverRepository.findByUserAndReceiverId(user, receiverId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.RECEIVER_NOT_FOUND));
+
+        Receiver receiver = userReceiver.getReceiver();
+
+        receiver.updateInfo(
+                request.getName(),
+                request.getRelation(),
+                request.getPhone(),
+                request.getEmail()
+        );
+
+        return UserPatchReceiverResponse.from(receiver);
+    }
+
+
 }

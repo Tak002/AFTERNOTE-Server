@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class AfternoteService {
 
     private final AfternoteRepository afternoteRepository;
+    private final com.example.afternote.domain.user.repository.UserRepository userRepository;
     private final AfternoteRelationService relationService;
     private final AfternoteValidator validator;
     private final ChaChaEncryptionUtil chaChaEncryptionUtil;
@@ -59,7 +60,7 @@ public class AfternoteService {
     public AfternotedetailResponse getDetailAfternote(Long userId, Long afternoteId) {
         Afternote afternote = afternoteRepository.findById(afternoteId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND));
-        if(!afternote.getUserId().equals(userId)) {
+        if(!afternote.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND);
         }
         
@@ -122,11 +123,11 @@ public class AfternoteService {
             case PLAYLIST:
                 // playlist 매핑
                 AfternoteCreateRequest.PlaylistRequest playlistRequest = null;
-
-                if (!afternote.getPlaylists().isEmpty()) {
-                    AfternotePlaylist playlist = afternote.getPlaylists().get(0);
-
-                    // songs 매핑 (coverUrl presigned GET 변환)
+                
+                if (afternote.getPlaylist() != null) {
+                    AfternotePlaylist playlist = afternote.getPlaylist();
+                    
+                    // songs 매핑
                     List<AfternoteCreateRequest.SongRequest> songs = playlist.getItems().stream()
                             .map(item -> new AfternoteCreateRequest.SongRequest(
                                     item.getSongTitle(),
@@ -186,6 +187,10 @@ public class AfternoteService {
         // 요청 데이터 검증
         validator.validateCreateRequest(request);
         
+        // 사용자 조회
+        com.example.afternote.domain.user.model.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        
         // sortOrder 자동 계산 (해당 사용자의 최대값 + 1)
         Integer nextSortOrder = afternoteRepository.findMaxSortOrderByUserId(userId)
                 .map(max -> max + 1)
@@ -193,7 +198,7 @@ public class AfternoteService {
         
         // 공통 필드로 Afternote 생성
         Afternote.AfternoteBuilder builder = Afternote.builder()
-                .userId(userId)
+                .user(user)
                 .categoryType(request.getCategory())
                 .title(request.getTitle())
                 .sortOrder(nextSortOrder);
@@ -208,10 +213,11 @@ public class AfternoteService {
         
         Afternote afternote = builder.build();
 
-        // 카테고리별 관계 데이터 저장
-        relationService.saveRelationsByCategory(afternote, request);
-
+        // ✅ 먼저 Afternote 저장 (ID 생성)
         Afternote saved = afternoteRepository.save(afternote);
+        
+        // ✅ 그 다음 카테고리별 관계 데이터 저장 (저장된 afternote 참조)
+        relationService.saveRelationsByCategory(saved, request);
         
         return AfternoteCreateResponse.builder()
                 .afternoteId(saved.getId())
@@ -222,7 +228,7 @@ public class AfternoteService {
     public AfternoteCreateResponse updateAfternote(Long userId, Long afternoteId, AfternoteCreateRequest request) {
         Afternote afternote = afternoteRepository.findById(afternoteId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND));
-        if(!afternote.getUserId().equals(userId)) {
+        if(!afternote.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.AFTERNOTE_ACCESS_DENIED);
         }
         // PATCH용 검증 (카테고리 변경 불가 체크)
@@ -263,7 +269,7 @@ public class AfternoteService {
     public void deleteAfternote(Long userId, Long afternoteId) {
         Afternote afternote = afternoteRepository.findById(afternoteId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AFTERNOTE_NOT_FOUND));
-        if(!afternote.getUserId().equals(userId)) {
+        if(!afternote.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.AFTERNOTE_ACCESS_DENIED);
         }
         afternoteRepository.delete(afternote);

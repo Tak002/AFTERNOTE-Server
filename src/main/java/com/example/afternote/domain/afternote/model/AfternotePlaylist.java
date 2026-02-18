@@ -20,8 +20,8 @@ public class AfternotePlaylist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "afternote_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "afternote_id", nullable = false, unique = true)
     private Afternote afternote;
     
     @Column(nullable = false, length = 100)
@@ -60,10 +60,10 @@ public class AfternotePlaylist {
     @Builder
     public static class MemorialVideo {
         
-        @Column(name = "video_url", length = 500)
+        @Column(name = "video_url", length = 1000)
         private String videoUrl;
         
-        @Column(name = "thumbnail_url", length = 500)
+        @Column(name = "thumbnail_url", length = 1000)
         private String thumbnailUrl;
     }
 }

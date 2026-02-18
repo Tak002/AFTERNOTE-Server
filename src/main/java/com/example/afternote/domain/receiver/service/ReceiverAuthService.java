@@ -1,5 +1,7 @@
 package com.example.afternote.domain.receiver.service;
 
+import com.example.afternote.domain.image.dto.PresignedUrlResponse;
+import com.example.afternote.domain.image.service.S3Service;
 import com.example.afternote.domain.receiver.dto.*;
 import com.example.afternote.domain.receiver.model.Receiver;
 import com.example.afternote.domain.receiver.repository.ReceiverRepository;
@@ -25,6 +27,7 @@ public class ReceiverAuthService {
     private final UserRepository userRepository;
     private final ReceivedService receivedService;
     private final DeliveryVerificationService deliveryVerificationService;
+    private final S3Service s3Service;
 
     public ReceiverAuthVerifyResponse verifyAuthCode(String authCode) {
         Receiver receiver = findReceiverByAuthCode(authCode);
@@ -87,6 +90,11 @@ public class ReceiverAuthService {
         User sender = userRepository.findById(receiver.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new ReceiverMessageResponse(sender.getName(), receiver.getMessage());
+    }
+
+    public PresignedUrlResponse generatePresignedUrl(String authCode, String extension) {
+        findReceiverByAuthCode(authCode);
+        return s3Service.generatePresignedUrl("documents", extension);
     }
 
     public DeliveryVerificationResponse getDeliveryVerificationStatus(String authCode) {

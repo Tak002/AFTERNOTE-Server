@@ -1,5 +1,6 @@
 package com.example.afternote.domain.receiver.controller;
 
+import com.example.afternote.domain.image.dto.PresignedUrlResponse;
 import com.example.afternote.domain.receiver.dto.*;
 import com.example.afternote.domain.receiver.service.ReceiverAuthService;
 import com.example.afternote.global.common.ApiResponse;
@@ -117,6 +118,19 @@ public class ReceiverAuthController {
             @RequestHeader("X-Auth-Code") String authCode
     ) {
         return ApiResponse.success(receiverAuthService.getMessageByAuthCode(authCode));
+    }
+
+    @Operation(
+            summary = "수신자 파일 업로드용 Presigned URL 생성",
+            description = "수신자가 사망확인 서류(PDF, 이미지)를 S3에 업로드하기 위한 Presigned URL을 생성합니다."
+    )
+    @PostMapping("/presigned-url")
+    public ApiResponse<PresignedUrlResponse> getPresignedUrl(
+            @Parameter(description = "수신자 인증번호 (UUID)", required = true)
+            @RequestHeader("X-Auth-Code") String authCode,
+            @Valid @RequestBody ReceiverPresignedUrlRequest request
+    ) {
+        return ApiResponse.success(receiverAuthService.generatePresignedUrl(authCode, request.getExtension()));
     }
 
     @Operation(
