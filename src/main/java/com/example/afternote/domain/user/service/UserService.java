@@ -103,7 +103,7 @@ public class UserService {
 
         UserReceiver userReceiver =
                 userReceiverRepository.findByUserAndReceiverId(user, receiverId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                        .orElseThrow(() -> new CustomException(ErrorCode.RECEIVER_NOT_FOUND));
 
         Receiver receiver = userReceiver.getReceiver();
 
@@ -212,4 +212,26 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
+
+    @Transactional
+    public UserPatchReceiverResponse updateReceiver(Long userId, Long receiverId, UserPatchReceiverRequest request) {
+
+        User user = findUserById(userId);
+        UserReceiver userReceiver =
+                userReceiverRepository.findByUserAndReceiverId(user, receiverId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.RECEIVER_NOT_FOUND));
+
+        Receiver receiver = userReceiver.getReceiver();
+
+        receiver.updateInfo(
+                request.getName(),
+                request.getRelation(),
+                request.getPhone(),
+                request.getEmail()
+        );
+
+        return UserPatchReceiverResponse.from(receiver);
+    }
+
+
 }
