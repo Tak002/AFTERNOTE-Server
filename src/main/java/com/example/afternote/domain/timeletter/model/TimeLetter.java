@@ -72,4 +72,8 @@ public class TimeLetter {
     public boolean isModifiable() {
         return this.status != TimeLetterStatus.SENT;
     }
+
+    public void markAsSent() {
+        this.status = TimeLetterStatus.SENT;
+    }
 }

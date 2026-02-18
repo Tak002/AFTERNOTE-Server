@@ -49,6 +49,7 @@ services:
     environment:
       # ⭐ 여기서 'dev'로 설정해야 테이블이 자동 생성됩니다!
       SPRING_PROFILES_ACTIVE: dev
+      TZ: Asia/Seoul
 
       # 도커 내부 통신용 주소 (localhost 대신 서비스명 사용)
     env_file:

@@ -19,6 +19,6 @@ WORKDIR /app
 
 COPY --from=builder /build/build/libs/*.jar app.jar
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "-jar", "/app/app.jar"]
 
 EXPOSE 8080

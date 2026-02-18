@@ -5,6 +5,7 @@ import com.example.afternote.domain.timeletter.model.TimeLetterStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface TimeLetterRepository extends JpaRepository<TimeLetter, Long> {
     List<TimeLetter> findByIdInAndUserId(List<Long> ids, Long userId);
 
     void deleteByUserIdAndStatus(Long userId, TimeLetterStatus status);
+
+    List<TimeLetter> findByStatusAndSendAtBefore(TimeLetterStatus status, LocalDateTime dateTime);
 }
