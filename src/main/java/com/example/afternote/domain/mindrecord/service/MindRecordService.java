@@ -138,7 +138,7 @@ public class MindRecordService {
         }
 
         MindRecord record = MindRecord.create(
-                user, request.getType(), request.getTitle(), recordDate, request.getIsDraft()
+                user, request.getType(), request.getTitle(), recordDate, request.getContent(), request.getIsDraft()
         );
 
         mindRecordRepository.save(record);
@@ -216,7 +216,8 @@ public class MindRecordService {
         record.updateCommon(
                 request.getTitle(),
                 recordDate,
-                request.getIsDraft()
+                request.getIsDraft(),
+                request.getContent()
         );
 
         switch (record.getType()) {

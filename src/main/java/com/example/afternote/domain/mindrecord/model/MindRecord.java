@@ -43,6 +43,9 @@ public class MindRecord {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String content;
+
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
@@ -64,6 +67,7 @@ public class MindRecord {
             MindRecordType type,
             String title,
             LocalDate recordDate,
+            String content,
             boolean isDraft
     ) {
         MindRecord record = new MindRecord();
@@ -71,6 +75,7 @@ public class MindRecord {
         record.type = type;
         record.title = title;
         record.recordDate = recordDate;
+        record.content = content;
         record.isDraft = isDraft;
         return record;
     }
@@ -78,7 +83,8 @@ public class MindRecord {
     public void updateCommon(
             String title,
             LocalDate recordDate,
-            Boolean isDraft
+            Boolean isDraft,
+            String content
     ) {
         if (title != null && !title.isBlank()) {
             this.title = title;
@@ -90,6 +96,9 @@ public class MindRecord {
 
         if (isDraft != null) {
             this.isDraft = isDraft;
+        }
+        if (content != null) {
+            this.content = content;
         }
     }
 }
