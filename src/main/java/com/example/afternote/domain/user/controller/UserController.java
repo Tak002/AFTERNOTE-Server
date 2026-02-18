@@ -177,4 +177,21 @@ public class UserController {
         userService.deleteAccount(userId);
         return ApiResponse.success(null);
     }
+
+    @Operation(
+            summary = "수신인 정보 수정 API",
+            description = "특정 수신인의 이름, 관계, 전화번호, 이메일 정보를 수정합니다."
+    )
+    @PatchMapping("/receivers/{receiverId}")
+    public ApiResponse<UserPatchReceiverResponse> updateReceiver(
+            @Parameter(hidden = true) @UserId Long userId,
+            @PathVariable Long receiverId,
+            @Valid @RequestBody UserPatchReceiverRequest request
+    ) {
+        return ApiResponse.success(
+                userService.updateReceiver(userId, receiverId, request)
+        );
+    }
+
+
 }
