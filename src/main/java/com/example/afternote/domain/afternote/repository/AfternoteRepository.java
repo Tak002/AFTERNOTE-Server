@@ -15,12 +15,14 @@ import java.util.Optional;
 public interface AfternoteRepository extends JpaRepository<Afternote, Long> {
     
     // 전체 목록 페이징 조회
-    Page<Afternote> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    @Query("SELECT a FROM Afternote a WHERE a.user.id = :userId ORDER BY a.createdAt DESC")
+    Page<Afternote> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
     
     // 카테고리별 필터링 페이징 조회
-    Page<Afternote> findByUserIdAndCategoryTypeOrderByCreatedAtDesc(Long userId, AfternoteCategoryType categoryType, Pageable pageable);
+    @Query("SELECT a FROM Afternote a WHERE a.user.id = :userId AND a.categoryType = :categoryType ORDER BY a.createdAt DESC")
+    Page<Afternote> findByUserIdAndCategoryTypeOrderByCreatedAtDesc(@Param("userId") Long userId, @Param("categoryType") AfternoteCategoryType categoryType, Pageable pageable);
     
     // 해당 사용자의 최대 sortOrder 조회
-    @Query("SELECT MAX(a.sortOrder) FROM Afternote a WHERE a.userId = :userId")
+    @Query("SELECT MAX(a.sortOrder) FROM Afternote a WHERE a.user.id = :userId")
     Optional<Integer> findMaxSortOrderByUserId(@Param("userId") Long userId);
 }
